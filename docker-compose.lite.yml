@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  sentinel-lite:
+    build:
+      context: .
+      dockerfile: Dockerfile.lite
+    container_name: qeme-sentinel-lite
+    # bind alleen op localhost
+    ports:
+      - "127.0.0.1:3000:3000"  # web interface + api
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./logs:/app/logs
+    environment:
+      - QEME_MODE=lite
+      - BEDRIJF_NAAM=${BEDRIJF_NAAM:-Mijn Bedrijf}
+      - SECTOR=${SECTOR:-algemeen}
+      - COMPLIANCE_LEVEL=${COMPLIANCE_LEVEL:-basic}
+      - CONTACT_EMAIL=${CONTACT_EMAIL:-info@bedrijf.nl}
+      # security / observability
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - API_TOKEN=${API_TOKEN:-}
+      - MAX_JSON_SIZE_KB=${MAX_JSON_SIZE_KB:-100}
+      # regulatory
+      - REGULATORY_CACHE_HOURS=${REGULATORY_CACHE_HOURS:-24}
+      - REGULATORY_LOG_LEVEL=${REGULATORY_LOG_LEVEL:-WARNING}
+      # smtp (optioneel)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-25}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-sentinel-lite@localhost}
+      - SMTP_TO=${SMTP_TO:-}
+    restart: unless-stopped
+    networks: [qeme-lite]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  lite-monitor:
+    image: prom/prometheus:v2.53.0
+    container_name: qeme-lite-monitor
+    # bind ook alleen op localhost
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./config/prometheus.lite.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks: [qeme-lite]
+
+networks:
+  qeme-lite: { driver: bridge }
