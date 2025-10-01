@@ -1,0 +1,14 @@
+# licensed under the apache license, version 2.0
+name: ai_act_fullscan
+version: 1.0.0
+owner: idlibre
+license: Apache-2.0
+tags: [eu-ai-act, risk, governance]
+lang: nl
+safety:
+  pii_allowed: false
+constraints:
+  max_tokens_hint: 900
+prompt: |
+  je bent een ai-act assistent. klasseer het systeem (minimal/limited/high/ban) op basis van beschrijving.
+  lever: klasse, rationale, mogelijke verplichtingen (samenvatting), en disclaimers. geen juridisch advies.
