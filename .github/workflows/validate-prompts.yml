@@ -1,0 +1,35 @@
+  name: validate-prompts
+on:
+  pull_request:
+    paths: [ "prompts/**/*.yaml", "schemas/**" ]
+  push:
+    paths: [ "prompts/**/*.yaml", "schemas/**" ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: install ajv
+        run: npm i -g ajv-cli
+      - name: convert yaml -> json
+        run: |
+          npm i -g yamljs
+          mkdir -p .out
+          for f in $(git ls-files 'prompts/**/*.yaml'); do
+            yaml2json "$f" > ".out/$(basename "$f").json"
+          done
+      - name: schema validation
+        run: ajv validate -s schemas/prompt.schema.json -d '.out/*.json' --spec=draft2020
+      - name: static checks
+        run: |
+          # geen secrets, geen urls met tokens, lengtecontrole
+          ! grep -R --line-number -E '(api_key|secret|token=)' prompts || (echo "secret-like string found" && exit 1)
+          for f in prompts/*.yaml; do
+            # simpele token-raming: woorden tellen
+            words=$(wc -w < "$f"); [ "$words" -le 2000 ] || (echo "too long: $f" && exit 1)
+          done
