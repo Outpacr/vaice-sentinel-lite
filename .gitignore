@@ -1,0 +1,15 @@
+# python
+__pycache__/
+*.pyc
+
+# local env
+.env
+
+# runtime data
+data/
+logs/
+backups/
+
+# docker
+*.log
+*.pid
