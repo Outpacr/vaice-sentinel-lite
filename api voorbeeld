@@ -1,0 +1,4 @@
+curl -X POST http://localhost:3000/api/quick-scan \
+  -H "Content-Type: application/json" \
+  -H "X-API-Token: <API_TOKEN>" \
+  -d '{"bedrijfsnaam":"ACME BV","sector":"algemeen","ai_prompt":"chatbot"}'
