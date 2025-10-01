@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QEME Sentinel Lite - MKB Compliance</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  <div class="min-h-screen">
+    <header class="bg-blue-600 text-white">
+      <div class="container mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold">🛡️ QEME Sentinel Lite</h1>
+        <p class="text-blue-100">Eenvoudige AI & Privacy Compliance voor MKB</p>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+      <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1">API-token (indien server dit vereist)</label>
+        <input type="password" id="api_token" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Voer API-token in (optioneel)"/>
+        <p class="text-xs text-gray-600 mt-1">Wordt alleen lokaal in memory gebruikt voor je requests.</p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">⚡ Snelle Compliance Check</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam</label>
+            <input type="text" id="bedrijfsnaam" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Uw bedrijfsnaam"/>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sector</label>
+            <select id="sector" class="w-full border border-gray-300 rounded-md px-3 py-2">
+              <option value="algemeen">Algemeen</option>
+              <option value="webshop">Webshop/E-commerce</option>
+              <option value="zorgverlening">Zorgverlening</option>
+              <option value="fintech">FinTech</option>
+              <option value="marketing">Marketing</option>
+              <option value="horeca">Horeca</option>
+              <option value="detailhandel">Detailhandel</option>
+              <option value="consultancy">Consultancy</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">AI/Automatisering Omschrijving (optioneel)</label>
+          <textarea id="ai_prompt" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="3" placeholder="Bijv: Chatbot voor klantenservice, automated email marketing, recruitment algoritme"></textarea>
+        </div>
+        <button onclick="runQuickScan()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">🔍 Start Snelle Scan</button>
+      </div>
+
+      <!-- Regulatory Updates -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-bold text-gray-800">📜 Regulatory Updates</h2>
+          <div class="space-x-2">
+            <button onclick="loadRegulatoryStatus(false)" class="bg-gray-100 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-200">Check nu</button>
+            <button onclick="loadRegulatoryStatus(true)" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Force refresh</button>
+          </div>
+        </div>
+        <div id="regulatoryStatus" class="space-y-4">
+          <div class="text-sm text-gray-600">Nog niet geladen…</div>
+        </div>
+      </div>
+
+      <div id="results" class="hidden bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Compliance Resultaten</h3>
+        <div id="resultsContent"></div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">💼 Kies Uw Compliance Niveau</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-blue-600 mb-2">Basic</h3>
+            <div class="text-3xl font-bold text-gray-800 mb-2">€49<span class="text-sm text-gray-500">/maand</span></div>
+            <ul class="text-sm text-gray-600 space-y-2 mb-4">
+              <li>✅ GDPR basis compliance</li>
+              <li>✅ Privacy scan</li>
+              <li>✅ Maandelijks rapport</li>
+              <li>✅ Email ondersteuning</li>
+            </ul>
+            <button class="w-full bg-blue-100 text-blue-700 py-2 rounded-md hover:bg-blue-200">Kies Basic</button>
+          </div>
+
+          <div class="border-2 border-blue-500 rounded-lg p-6 relative">
+            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm">Populair</div>
+            <h3 class="text-lg font-bold text-blue-600 mb-2">Standard</h3>
+            <div class="text-3xl font-bold text-gray-800 mb-2">€99<span class="text-sm text-gray-500">/maand</span></div>
+            <ul class="text-sm text-gray-600 space-y-2 mb-4">
+              <li>✅ Alles van Basic</li>
+              <li>✅ EU AI Act compliance</li>
+              <li>✅ Sector-specifieke checks</li>
+              <li>✅ Wekelijks monitoring</li>
+              <li>✅ Telefoon ondersteuning</li>
+            </ul>
+            <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Kies Standard</button>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-blue-600 mb-2">Premium</h3>
+            <div class="text-3xl font-bold text-gray-800 mb-2">€199<span class="text-sm text-gray-500">/maand</span></div>
+            <ul class="text-sm text-gray-600 space-y-2 mb-4">
+              <li>✅ Alles van Standard</li>
+              <li>✅ Volledige compliance suite</li>
+              <li>✅ Real-time monitoring</li>
+              <li>✅ Dedicated compliance manager</li>
+              <li>✅ Jaarlijkse audit</li>
+            </ul>
+            <button class="w-full bg-gray-100 text-gray-700 py-2 rounded-md hover:bg-gray-200">Kies Premium</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+      <div class="container mx-auto px-4 py-8">
+        <div class="grid md:grid-cols-3 gap-8">
+          <div>
+            <h3 class="font-bold mb-4">QEME Sentinel Lite</h3>
+            <p class="text-gray-300">AI & Privacy compliance voor het Nederlandse MKB</p>
+          </div>
+          <div>
+            <h3 class="font-bold mb-4">Contact</h3>
+            <p class="text-gray-300">Email: info@qeme-sentinel-lite.nl</p>
+            <p class="text-gray-300">Tel: 020-1234567</p>
+          </div>
+          <div>
+            <h3 class="font-bold mb-4">Support</h3>
+            <p class="text-gray-300">Hulp nodig? Check onze knowledge base</p>
+            <p class="text-gray-300">Of plan een gratis consult</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    async function runQuickScan() {
+      const bedrijfsnaam = document.getElementById('bedrijfsnaam').value.trim();
+      const sector = document.getElementById('sector').value;
+      const ai_prompt = document.getElementById('ai_prompt').value;
+      const apiToken = document.getElementById('api_token').value.trim();
+      if (!bedrijfsnaam) { alert('Vul uw bedrijfsnaam in'); return; }
+      try {
+        const resp = await fetch('/api/quick-scan', {
+          method: 'POST',
+          headers: Object.assign({'Content-Type': 'application/json'}, apiToken ? {'X-API-Token': apiToken} : {}),
+          body: JSON.stringify({ bedrijfsnaam, sector, ai_prompt })
+        });
+        const result = await resp.json();
+        displayResults(result);
+      } catch (err) { alert('Fout bij scannen: ' + err.message); }
+    }
+
+    function displayResults(result) {
+      const resultsDiv = document.getElementById('results');
+      const contentDiv = document.getElementById('resultsContent');
+      const colorMap = { red:'bg-red-100 text-red-800', orange:'bg-orange-100 text-orange-800', yellow:'bg-yellow-100 text-yellow-800', green:'bg-green-100 text-green-800' };
+      const statusColor = colorMap[result.status_color] || 'bg-gray-100 text-gray-800';
+      const sanitize = (html) => DOMPurify.sanitize(String(html ?? ''));
+      const recs = Array.isArray(result.aanbevelingen) ? result.aanbevelingen : [];
+      const steps = Array.isArray(result.volgende_stappen) ? result.volgende_stappen : [];
+      const checks = Array.isArray(result.alle_checks) ? result.alle_checks : [];
+      contentDiv.innerHTML = DOMPurify.sanitize(`
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h4 class="font-bold text-gray-800 mb-2">Compliance Score</h4>
+            <div class="text-4xl font-bold text-blue-600">${sanitize(result.score)}/100</div>
+            <div class="mt-2 p-3 rounded-lg ${statusColor}">${sanitize(result.status)}</div>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 mb-2">Samenvatting</h4>
+            <div class="space-y-1 text-sm">
+              <div>Totaal checks: ${sanitize(result.samenvatting?.totaal_checks)}</div>
+              <div>Kritieke issues: ${sanitize(result.samenvatting?.kritieke_issues)}</div>
+              <div>Belangrijke issues: ${sanitize(result.samenvatting?.belangrijke_issues)}</div>
+              <div>Geslaagd: ${sanitize(result.samenvatting?.geslaagd)}</div>
+            </div>
+          </div>
+        </div>
+        <div class="mb-6">
+          <h4 class="font-bold text-gray-800 mb-3">🎯 Top Aanbevelingen</h4>
+          <ul class="space-y-2">${recs.map(r => `<li class="text-sm">${sanitize(r)}</li>`).join('')}</ul>
+        </div>
+        <div class="mb-6">
+          <h4 class="font-bold text-gray-800 mb-3">📅 Volgende Stappen</h4>
+          <ul class="space-y-2">${steps.map(s => `<li class="text-sm">${sanitize(s)}</li>`).join('')}</ul>
+        </div>
+        <div>
+          <h4 class="font-bold text-gray-800 mb-3">📋 Alle Checks</h4>
+          <div class="space-y-2">
+            ${checks.map(c => `
+              <div class="border border-gray-200 rounded p-3">
+                <div class="font-medium">${sanitize(c.beschrijving)}</div>
+                <div class="text-sm text-gray-600 mt-1">${sanitize(c.resultaat)}</div>
+                ${c.actie ? `<div class="text-sm text-blue-600 mt-2">💡 ${sanitize(c.actie)}</div>` : ''}
+              </div>`).join('')}
+          </div>
+        </div>
+      `);
+      resultsDiv.classList.remove('hidden');
+      resultsDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function loadRegulatoryStatus(refresh) {
+      const apiToken = document.getElementById('api_token').value.trim();
+      const headers = apiToken ? {'X-API-Token': apiToken} : {};
+      const box = document.getElementById('regulatoryStatus');
+      box.innerHTML = '<div class="text-sm text-gray-600">Laden…</div>';
+      try {
+        const url = '/api/regulatory-status' + (refresh ? '?refresh=1' : '');
+        const resp = await fetch(url, { headers });
+        const data = await resp.json();
+        const sanitize = (x) => DOMPurify.sanitize(String(x ?? ''));
+        const items = (data.updates || []).map(u => `
+          <div class="border border-gray-200 rounded p-3">
+            <div class="flex items-center justify-between">
+              <div class="font-medium">${sanitize(u.framework.toUpperCase())} • ${sanitize(u.impact_level)}</div>
+              <a class="text-sm text-blue-600 underline" href="${sanitize(u.url)}" target="_blank" rel="noopener">Open bron</a>
+            </div>
+            <div class="text-sm text-gray-800 mt-1">${sanitize(u.title)}</div>
+            <div class="text-sm text-gray-600 mt-1">${sanitize(u.summary)}</div>
+          </div>`).join('');
+        box.innerHTML = `
+          <div class="text-sm text-gray-700">
+            Laatste check: ${sanitize(data.last_check || '')} • Updates: ${sanitize(data.total_updates || 0)} • Kritiek: ${sanitize(data.critical_updates || 0)}
+          </div>
+          <div class="mt-4 space-y-2">${items || '<div class="text-sm text-gray-500">Geen updates gevonden</div>'}</div>
+        `;
+      } catch (e) {
+        box.innerHTML = `<div class="text-sm text-red-700">Fout bij ophalen van updates: ${DOMPurify.sanitize(e.message)}</div>`;
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => loadRegulatoryStatus(false));
+  </script>
+</body>
+</html>
