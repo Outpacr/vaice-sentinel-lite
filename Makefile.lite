@@ -1,0 +1,89 @@
+DOCKER_COMPOSE=docker-compose -f docker-compose.lite.yml
+
+.PHONY: help setup start stop status quick-scan wizard clean update regulatory-check backup
+
+help:
+	@echo "🛡️ QEME Sentinel Lite - MKB Commands"
+	@echo ""
+	@echo "Setup:"
+	@echo "  make setup           # eerste installatie"
+	@echo "  make start           # start compliance systeem"
+	@echo "  make stop            # stop systeem"
+	@echo ""
+	@echo "Gebruik:"
+	@echo "  make quick-scan      # snelle compliance check (cli)"
+	@echo "  make wizard          # interactieve setup (cli)"
+	@echo "  make status          # system status"
+	@echo "  make regulatory-check# check regulatory updates (cli)"
+	@echo ""
+	@echo "Onderhoud:"
+	@echo "  make backup          # eenvoudige data backup (tgz)"
+	@echo "  make clean           # opruimen"
+	@echo "  make update          # update naar nieuwste versie"
+
+setup:
+	@echo "🚀 QEME Sentinel Lite Setup voor MKB..."
+	@if [ ! -f .env ]; then \
+	  echo "📝 .env bestand aanmaken..."; \
+	  cp .env.example .env; \
+	  echo "⚠️  pas .env aan met uw bedrijfsgegevens!"; \
+	fi
+	mkdir -p data config templates static logs backups scripts
+	$(DOCKER_COMPOSE) pull || true
+	@echo "✅ setup voltooid!"
+	@echo "📖 volgende stap: make start"
+
+start:
+	@echo "🚀 QEME Sentinel Lite starten..."
+	$(DOCKER_COMPOSE) up -d --build
+	@echo "✅ systeem gestart!"
+	@echo "🌐 web interface: http://localhost:3000"
+	@echo "📊 monitoring:    http://localhost:9090"
+
+stop:
+	@echo "🛑 QEME Sentinel Lite stoppen..."
+	$(DOCKER_COMPOSE) down
+	@echo "✅ systeem gestopt"
+
+status:
+	@echo "📊 QEME Sentinel Lite Status:"
+	$(DOCKER_COMPOSE) ps
+	@echo ""
+	@echo "🔍 health checks:"
+	@curl -s http://localhost:3000/health 2>/dev/null || echo "❌ web interface niet bereikbaar"
+
+quick-scan:
+	@echo "⚡ snelle compliance scan (cli)..."
+	@echo "Bedrijfsnaam (default: Test Bedrijf):"; \
+	read bedrijf; \
+	echo "Sector (algemeen/webshop/zorgverlening/fintech/marketing/horeca/detailhandel/consultancy):"; \
+	read sector; \
+	python mkb_sentinel.py "$${bedrijf:-Test Bedrijf}" "$${sector:-algemeen}"
+
+wizard:
+	@echo "🧙‍♂️ QEME Sentinel Lite Wizard..."
+	python mkb_sentinel.py wizard
+
+regulatory-check:
+	@echo "📜 regulatory updates check (cli)..."
+	@if docker ps --format '{{.Names}}' | grep -q '^qeme-sentinel-lite$$'; then \
+	  docker exec -it qeme-sentinel-lite python regulatory_integration.py check-regulatory || true; \
+	else \
+	  python regulatory_integration.py check-regulatory || true; \
+	fi
+
+backup:
+	bash scripts/lite_backup.sh
+
+clean:
+	@echo "🧹 opruimen..."
+	$(DOCKER_COMPOSE) down -v
+	docker system prune -f
+	@echo "✅ opgeruimd!"
+
+update:
+	@echo "🔄 updaten naar nieuwste versie..."
+	git pull origin main || echo "⚠️  git update gefaald, handmatig updaten"
+	$(DOCKER_COMPOSE) pull || true
+	$(DOCKER_COMPOSE) up -d --build
+	@echo "✅ update voltooid!"
