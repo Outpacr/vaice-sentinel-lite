@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "prompt artifact schema",
+  "type": "object",
+  "required": ["name", "version", "owner", "license", "tags", "prompt"],
+  "properties": {
+    "name": { "type": "string", "minLength": 3 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "owner": { "type": "string" },
+    "license": { "type": "string", "const": "Apache-2.0" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "lang": { "type": "string", "enum": ["nl", "en"] },
+    "safety": {
+      "type": "object",
+      "properties": {
+        "pii_allowed": { "type": "boolean", "const": false },
+        "hallucination_guard": { "type": "boolean" }
+      },
+      "required": ["pii_allowed"]
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_tokens_hint": { "type": "integer", "minimum": 0 },
+        "do_not_use_external_tools": { "type": "boolean" }
+      }
+    },
+    "prompt": { "type": "string", "minLength": 20 }
+  },
+  "additionalProperties": false
+}
